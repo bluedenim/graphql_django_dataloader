@@ -2,4 +2,7 @@
 Demos of GraphQL on Django. See the README.md for each subdir for more info.
 
 ## ariadne ##
-Ariadne implementation of GraphQL on Django
+Example of GraphQL w/ Dataloaders on Django using Ariadne
+
+## graphene ##
+Example of GraphQL w/ Dataloaders on Django using Graphene

@@ -192,3 +192,43 @@ GRAPHENE = {
 
 ....
 ```
+
+## Building ##
+- cd into the subdir for the implemention, then build with docker-compose:
+  ```
+  cd graphene
+  docker-compose build
+  ```
+- shell in to seed data
+  ```
+  docker-compose run --rm app /bin/bash
+  python manage.py migrate
+  python manage.py seed_data
+  exit
+  ```
+## Running ##
+- start up the app
+  ```
+  docker-compose up
+  ```
+- Bring up the GraphQL client at http://localhost:8000/graphql
+- Run this query:
+  ```
+  {
+    businesses {
+      id
+      name
+      reviews {
+        id
+        rating
+        comment
+        author {
+          id
+          name
+          email
+        }
+      }
+    }
+  }
+  ```
+- From the logs, you should see only 3 queries to the DB thanks to the dataloaders.

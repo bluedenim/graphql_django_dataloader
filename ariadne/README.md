@@ -17,7 +17,7 @@ The demo data model is this set of models:
 
 In short:
 - **Business** has 0 to many **Review**s. A **Review** is mapped to exactly 1 **Business**.
-- **User** may write 0-many **Review**s, but a **Review** has exactly 1 author/**User**. 
+- **User** may write 0-many **Review**s, but a **Review** has exactly 1 author/**User**.
 - **Business** has a many-to-many relationship to **Category**.
 
 The demo is to expose **Business**, **Review**, and **User** via GraphQL. As mentioned,
@@ -25,7 +25,7 @@ The demo is to expose **Business**, **Review**, and **User** via GraphQL. As men
 
 ## Dataloaders ##
 
-RDBMSes (aka SQL DBs) are **NOT** friends with GraphQL, so naive implementations of GraphQL 
+RDBMSes (aka SQL DBs) are **NOT** friends with GraphQL, so naive implementations of GraphQL
 resolvers will inevitably run into the N+1 query problem.
 
 The ugly duct tape solution is **Dataloader**s, so a typical set of operations of server devs working
@@ -106,7 +106,7 @@ Libraries used are:
 
 ### Dataloader setup with ariadne-django ###
 
-There is some missing documention on getting dataloader set up with ariadne-django. Here is the process 
+There is some missing documention on getting dataloader set up with ariadne-django. Here is the process
 (based on https://ariadnegraphql.org/docs/dataloaders):
 
 **urls.py:**
@@ -119,7 +119,7 @@ class GraphQLViewWithSyncDataloaders(GraphQLView):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.context_value = self.get_context_value
-    
+
     def get_context_value(self, request: HttpRequest) -> dict:
         context_value = {
             "request": request,
@@ -165,3 +165,43 @@ def resolve_review_author(review, info):
 ....
 
 ```
+
+## Building ##
+- cd into the subdir for the implemention, then build with docker-compose:
+  ```
+  cd ariadne
+  docker-compose build
+  ```
+- shell in to seed data
+  ```
+  docker-compose run --rm app /bin/bash
+  python manage.py migrate
+  python manage.py seed_data
+  exit
+  ```
+## Running ##
+- start up the app
+  ```
+  docker-compose up
+  ```
+- Bring up the GraphQL client at http://localhost:8000/graphql
+- Run this query:
+  ```
+  {
+    businesses {
+      id
+      name
+      reviews {
+        id
+        rating
+        comment
+        author {
+          id
+          name
+          email
+        }
+      }
+    }
+  }
+  ```
+- From the logs, you should see only 3 queries to the DB thanks to the dataloaders.
