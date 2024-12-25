@@ -6,3 +6,6 @@ Example of GraphQL w/ Dataloaders on Django using Ariadne
 
 ## graphene ##
 Example of GraphQL w/ Dataloaders on Django using Graphene
+
+## strawberry ##
+Example of GraphQL w/ Dataloaders on Django using Strawberry
