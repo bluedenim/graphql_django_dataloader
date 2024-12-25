@@ -1,4 +1,4 @@
-# Graphene/Django GraphQL Demo #
+# Strawberry/Django GraphQL Demo #
 
 The demo data model is this set of models:
 - User (default model from Django)
@@ -93,56 +93,102 @@ This is definitely an improvement over N+1 (and recursively so), but it's still 
 While there are some opportunities for dynamic programming to have a set of reusable
 classes to handle this, the process of thinking about Dataloaders is inescapable.
 
-## Graphene ##
+## Strawberry ##
 
-This subdir is a small Django project illustrating using the [Graphene GraphQL library](https://docs.graphene-python.org/projects/django/en/latest/) for Python/Django
+This subdir is a small Django project illustrating using the [Strawberry GraphQL library](https://strawberry.rocks/) for Python/Django
 and getting a working Dataloader setup.
 
 Libraries used are:
-- [graphene](https://docs.graphene-python.org/en/latest/quickstart/) -- GraphQL library for Python
-- [graphene-django](https://docs.graphene-python.org/projects/django/en/latest/) -- More library to work with Django on Python.
+- [strawberry-graphql](https://strawberry.rocks/) -- Strawberry library
+- strawberry-graphql-django -- Library to integrate with Django
 - graphql-core -- GraphQL logic.
-- [graphql-sync-dataloaders](https://ariadnegraphql.org/docs/dataloaders) -- Dataloader (synchronous) support.
+- [graphql-sync-dataloaders](https://ariadnegraphql.org/docs/dataloaders) -- Dataloader (synchronous) support. Strawberry's own DataLoader only 
+  supports Async.
 
-### Dataloader setup with graphene-django ###
+### Dataloader setup with strawberry ###
 
-Set up the execution context class of `DeferredExecutionContext` when registering the GraphQL endpoint:
+The [documentation from Strawberry](https://strawberry.rocks/docs/guides/dataloaders#usage-with-context) _suggests_ that its DataLoader only works in **asynchronous** flows 
+(does that require using ASGI?). To be consistent with the other demos, I'm hacking this set up to also use
+a **synchronous** dataloader from **graphql-sync-dataloaders**.
 
-**urls.py:**
-```
-from django.views.decorators.csrf import csrf_exempt
-from graphene_django.views import GraphQLView
+Set up the execution context class of `DeferredExecutionContext` when instantiating the Schema object. 
 
-from graphql_sync_dataloaders import DeferredExecutionContext
-
-
-urlpatterns = [
-    ...
-    path("graphql", csrf_exempt(GraphQLView.as_view(graphiql=True, execution_context_class=DeferredExecutionContext))),
-]
-```
-
-Hooking up dataloaders to Graphene is a bit tricky. At the current time, the async dataloader support is suspicious.
-This project uses the **synchronous** library **graphql-sync-dataloaders** instead.
+⚠ And this is only by luck (?) that the Strawberry code allows me to specify a different execution context class 
+(`DeferredExecutionContext`) than their own **and they still work correctly**:
 
 **schema.py:**
 ```
+import strawberry
+from graphql_sync_dataloaders import DeferredExecutionContext
+
 ...
 
-def review_author_data_loader(keys: list[int]) -> list[User]:
+schema = strawberry.Schema(
+    query=Query, execution_context_class=DeferredExecutionContext, extensions=[DjangoOptimizerExtension]
+)
+```
+
+Extend the default Strawberry context to add a field to hold our dataloaders:
+
+**urls.py:**
+```
+from strawberry.django.context import StrawberryDjangoContext
+
+...
+
+@dataclass
+class Context(StrawberryDjangoContext):
     """
-    Data loader for authors of reviews
-
-    :param keys: IDs of reviews
-
-    :return: Users of the reviews in the same order of the review IDs
+    Extend the default context from Strawberry to add a dataloader property that will contain our dataloaders.
     """
-    reviews = Review.objects.filter(id__in=keys).select_related("user")
-    review_author_by_review_id = {r.id: r.user for r in reviews}
-    return [review_author_by_review_id.get(pk) for pk in keys]
+    dataloaders: dict
+```
+
+Also extend the `GraphQLView` (the one from **Strawberry**, not 
+the one from **graphql-core**) and override the `get_context` to return our context with the dataloaders:
+
+**urls.py:**
+```
+from main.schema import schema, dataloader_business_reviews, dataloader_review_author
+from strawberry.django.views import GraphQLView
 
 
-def business_review_data_loader(keys: list[int]) -> list[list[Review]]:
+...
+
+class GraphQLViewWithDataLoaders(GraphQLView):
+    """
+    Override the get_context to return our Context (with the dataloader property) for resolvers to use.
+    """
+
+    def get_context(self, request: HttpRequest, response: HttpResponse) -> Context:
+        strawberry_context = super().get_context(request, response)
+
+        return Context(
+            request=strawberry_context.request,
+            response=strawberry_context.response,
+            dataloaders={
+                "business_reviews": SyncDataLoader(dataloader_business_reviews),
+                "review_author": SyncDataLoader(dataloader_review_author),
+            }
+        )
+    
+...
+        
+urlpatterns = [
+    ...
+    
+    path("graphql/", csrf_exempt(GraphQLViewWithDataLoaders.as_view(schema=schema))),
+]
+```
+
+**schema.py:**
+
+The dataloader functions referenced above:
+
+```
+...
+
+def dataloader_business_reviews(keys: list[int]) -> list[list[Review]]:
     """
     Dataloader for reviews of businesses
 
@@ -150,7 +196,7 @@ def business_review_data_loader(keys: list[int]) -> list[list[Review]]:
 
     :return: Reviews of Businesses in the same order of the Business IDs
     """
-    reviews = Review.objects.filter(business_id__in=keys)
+    reviews = DjangoReview.objects.filter(business_id__in=keys)
 
     review_by_business_id = defaultdict(list)
     for r in reviews:
@@ -158,45 +204,67 @@ def business_review_data_loader(keys: list[int]) -> list[list[Review]]:
 
     return [review_by_business_id.get(pk, []) for pk in keys]
 
+
+def dataloader_review_author(keys: list[int]) -> list[User]:
+    """
+    Dataloader for review authors
+
+    :param keys: IDs of Reviews to retrieve Users for
+
+    :return: Users authoring the reviews in the same order of the Review IDs in keys
+    """
+    author_by_review_id = {}
+    for r in DjangoReview.objects.filter(id__in=keys).select_related("user"):
+        author_by_review_id[r.id] = r.user
+
+    return [author_by_review_id.get(key) for key in keys]
+
 ...
 
-def data_loader_middleware(next, root, info, **args):
-    """
-    Middleware used to inject dataloaders into the context of resolvers. This is injected in Django settings via the
-    GRAPHENE["MIDDLEWARE"] property.
-    """
-    if USE_DATALOADERS:
-        # The middleware is called multiple times even for a single request, so only inject the data loaders if they
-        # don't already exist.
-        if not hasattr(info.context, "data_loaders"):
-            info.context.data_loaders = {
-                "business_review": SyncDataLoader(business_review_data_loader),
-                "review_author": SyncDataLoader(review_author_data_loader)
-            }
-    return next(root, info, **args)
-
 ```
 
-The `schema` and `data_loader_middleware` are then configured in `settings.py`:
-
-**settings.py:**
+and how they are used in the resolvers:
 ```
 ...
 
-GRAPHENE = {
-    "SCHEMA": "main.schema.schema",
-    "MIDDLEWARE": [
-        "main.schema.data_loader_middleware"
-    ]
-}
+@strawberry.type
+class Review:
+    id: strawberry.ID
+    rating: int
+    comment: str
 
-....
+    @strawberry.field
+    def author(self, root: "Review", info: strawberry.Info) -> User:
+        if USE_DATALOADERS:
+            dataloader = info.context.dataloaders["review_author"]
+            return dataloader.load(root.id)
+        else:
+            return DjangoUser.objects.get(id=root.user_id)
+            
+...
+
+@strawberry.type
+class Business:
+    id: strawberry.ID
+    name: str
+    description: str
+
+    @strawberry.field
+    def reviews(self, root: "Business", info: strawberry.Info) -> list[Review]:
+        if USE_DATALOADERS:
+            dataloader = info.context.dataloaders["business_reviews"]
+            return dataloader.load(root.id)
+        else:
+            return DjangoReview.objects.filter(business_id=root.id)            
+
 ```
+
+
 
 ## Building ##
 - cd into the subdir for the implementation, then build with docker-compose:
   ```
-  cd graphene
+  cd strawberry
   docker-compose build
   ```
 - shell in to seed data

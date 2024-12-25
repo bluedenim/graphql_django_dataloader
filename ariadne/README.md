@@ -167,7 +167,7 @@ def resolve_review_author(review, info):
 ```
 
 ## Building ##
-- cd into the subdir for the implemention, then build with docker-compose:
+- cd into the subdir for the implementation, then build with docker-compose:
   ```
   cd ariadne
   docker-compose build
