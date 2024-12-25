@@ -1,4 +1,4 @@
-# graphql_django
+# graphql_django_dataloader
 Demos of GraphQL on Django **with synchronous DataLoaders**. See the README.md for each subdir for more info.
 
 ## ariadne ##
