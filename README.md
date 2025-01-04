@@ -103,7 +103,7 @@ This repo contains some sample Django apps using different GraphQL frameworks, c
 
 One superuser is created with `root` / `password`. A pair of test users, test reviews, and test businesses are also created by the `seed_data.py` custom Django command.
 
-See the README.md in each subdirectory for instructions.
+See the `README.md` in each **subdirectory** for instructions.
 
 ### ariadne ###
 Example of GraphQL w/ Dataloaders on Django using [Ariadne](https://ariadnegraphql.org/)
@@ -111,5 +111,8 @@ Example of GraphQL w/ Dataloaders on Django using [Ariadne](https://ariadnegraph
 ### graphene ###
 Example of GraphQL w/ Dataloaders on Django using [Graphene](https://graphene-python.org/)
 
-### strawberry ###
+### sStrawberry ###
 Example of GraphQL w/ Dataloaders on Django using [Strawberry](https://strawberry.rocks/)
+
+### graphdb ###
+Example of GraphQL w/ Dataloaders on Django & [Neo4j Graph DB](https://neo4j.com/product/neo4j-graph-database/)
