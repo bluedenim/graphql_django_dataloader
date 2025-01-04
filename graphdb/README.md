@@ -88,6 +88,10 @@ The resulting data model in Neo4j is something like this and is different than t
                +==========+
 ```
 
+The graph looks like this after running `seed_data.py`:
+<img width="815" alt="Screenshot 2024-12-28 at 22 01 39" src="https://github.com/user-attachments/assets/4a4d4461-0c7d-4ec6-ad18-59f7d148fbc7" />
+
+
 This is because a relationship in Neo4j can have properties (like a joining/intersection table in SQL). Assuming the
 data model is such that each user can only write at most 1 review for each business, then this works.
 
