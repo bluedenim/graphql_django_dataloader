@@ -1,0 +1,28 @@
+services:
+  app:
+    build: .
+    ports:
+      - 8000:8000
+    expose:
+      - 8000
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./:/code
+    tty: true
+    stdin_open: true
+    depends_on:
+      neo4j:
+        condition: service_started
+  neo4j:
+    # http://localhost:7474/browser/ will allow interaction w/ the DB. Use neo4j://localhost:7687 for URL and
+    # neo4j/password for login. Initially it'll be neo4j/neo4j, but you'll be prompted to change it.
+    image: neo4j
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    expose:
+      - "7474"
+      - "7687"
+    volumes:
+      # Use a host volume for easier access/management
+      - ./neo4jdata:/data
