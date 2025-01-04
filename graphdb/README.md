@@ -117,11 +117,16 @@ will have to do something similar.
 
 _Disclaimer again: I'm new to Neo4j. So keep this in mind._
 
-Just for GraphQL, I'm not sure that it's worth it. The Dataloader is still necessary, and the Cypher queries are not
-necessarily easier to write than SQL queries (especially for people new to Neo4j). The lack of an ORM layer means more
-code to write and maintain. And do Cypher concepts and programming model transferable to other Graph DBs? SQL is 
-pretty much standardized (for most of what we do anyway) across DB vendors.
+**For Python** and just GraphQL, I'm not sure that it's worth it. The Dataloader is still necessary, and the Cypher queries
+are not necessarily easier to write than Django QuerySet queries (especially for people new to Neo4j). The lack of an 
+ORM layer means more code to write and maintain. And do Cypher concepts and programming model transferable to other 
+Graph DBs? Both Django's ORM and SQL are pretty much standardized (for most of what I do anyway) across DB vendors.
 
 However, if I were building a system that has a huge graph of relationships that I need to analyze and traverse, then
 Neo4j (or another Graph DB) might be the way to go. In other words, the use of Neo4j should be driven by the business
 logic and not because of GraphQL.
+
+**For Javascript**, the story might be different. There is a [Neo4j GraphQL Library](https://neo4j.com/docs/graphql/current/) that might help working with GraphQL
+and Neo4j. I am learning it now as time permits, but it certainly has more high-level support than just a driver.
+Of course, it's ONLY for Javascript currently.
+
