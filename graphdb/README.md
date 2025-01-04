@@ -30,7 +30,6 @@ One thing to note is that, due to the lack of an ORM layer on top of Neo4j, we h
 significantly more work than just using Django's ORM, including having to learn Cypher, Neo4j's query language. This
 DAO and support code are in `myapp/services/neo4j.py`.
 
-
 ## Running ##
 - start up the app
   ```
@@ -122,11 +121,15 @@ are not necessarily easier to write than Django QuerySet queries (especially for
 ORM layer means more code to write and maintain. And do Cypher concepts and programming model transferable to other 
 Graph DBs? Both Django's ORM and SQL are pretty much standardized (for most of what I do anyway) across DB vendors.
 
+One option that may help is [neomodel](https://neomodel.readthedocs.io/en/latest/index.html) which I haven't tested yet. And
+let's say it makes working with Neo4j as pleasant as working with Django's QuerySet, it still doesn't eliminate the need to
+work with **Dataloaders**. 
+
 However, if I were building a system that has a huge graph of relationships that I need to analyze and traverse, then
 Neo4j (or another Graph DB) might be the way to go. In other words, the use of Neo4j should be driven by the business
 logic and not because of GraphQL.
 
-**For Javascript**, the story might be different. There is a [Neo4j GraphQL Library](https://neo4j.com/docs/graphql/current/) that might help working with GraphQL
-and Neo4j. I am learning it now as time permits, but it certainly has more high-level support than just a driver.
-Of course, it's ONLY for Javascript currently.
+**For Javascript**, the story might be different. There is a [Neo4j GraphQL Library](https://neo4j.com/docs/graphql/current/) 
+that might help working with GraphQL and Neo4j. I am learning it now as time permits (to see if it eliminates the need for 
+Dataloaders), but it certainly has more high-level support than just a driver. Of course, it's ONLY for Javascript currently.
 
