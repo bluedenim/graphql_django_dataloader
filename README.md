@@ -111,7 +111,7 @@ Example of GraphQL w/ Dataloaders on Django using [Ariadne](https://ariadnegraph
 ### graphene ###
 Example of GraphQL w/ Dataloaders on Django using [Graphene](https://graphene-python.org/)
 
-### sStrawberry ###
+### strawberry ###
 Example of GraphQL w/ Dataloaders on Django using [Strawberry](https://strawberry.rocks/)
 
 ### graphdb ###
