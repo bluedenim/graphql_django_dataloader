@@ -80,11 +80,11 @@ The resulting data model in Neo4j is something like this and is different than t
 
 ```
 +----------+  m                     n  +------+
-| Business |<--------- Review ---------| User |
+| Business |<--------- Reviewed -------| User |
 +==========+                           +======+
-     ^  m   n  +----------+
-     +---------| Category |
-               +==========+
+     |  m           n +----------+
+     +-In Category--->| Category |
+                      +==========+
 ```
 
 The graph looks like this after running `seed_data.py`:
