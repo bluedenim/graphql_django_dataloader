@@ -105,14 +105,14 @@ One superuser is created with `root` / `password`. A pair of test users, test re
 
 See the `README.md` in each **subdirectory** for instructions.
 
-### ariadne ###
+### [ariadne](https://github.com/bluedenim/graphql_django_dataloader/tree/master/ariadne) ###
 Example of GraphQL w/ Dataloaders on Django using [Ariadne](https://ariadnegraphql.org/)
 
-### graphene ###
+### [graphene](https://github.com/bluedenim/graphql_django_dataloader/tree/master/graphene) ###
 Example of GraphQL w/ Dataloaders on Django using [Graphene](https://graphene-python.org/)
 
-### strawberry ###
+### [strawberry](https://github.com/bluedenim/graphql_django_dataloader/tree/master/strawberry) ###
 Example of GraphQL w/ Dataloaders on Django using [Strawberry](https://strawberry.rocks/)
 
-### graphdb ###
+### [strawberry w/ graphdb](https://github.com/bluedenim/graphql_django_dataloader/tree/master/graphdb) ###
 Example of GraphQL w/ Dataloaders on Django & [Neo4j Graph DB](https://neo4j.com/product/neo4j-graph-database/)
